@@ -63,8 +63,7 @@ namespace callRecords
                 {
 
                     // Look for records from the start of the period(first of the month) to the end of the current day (11:59:59 PM)
-                    //DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
-                    DateTime fromDateTime = DateTime.Now.AddDays(-89); // Beginging of this month
+                    DateTime fromDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month, 1); // Beginging of this month
                     DateTime toDateTime = new DateTime(DateTime.Now.Year,DateTime.Now.Month , DateTime.Now.Day,11,59,59); // End of Today
                     
                     // Initial MS Graph Uri for the "getPstnCalls" API
@@ -156,16 +155,16 @@ namespace callRecords
                     // Check if we need to send a notification
                     if (GenConfig.SendOnlyWhenThresholdExceeded)
                     {
-                            // If we are under the threshold limit for each pool , then do not send a notification
-                            if (CallUsageTotals.Any(p => (p.callDurationTotal / p.planDetails.planLimit) * 100 < GenConfig.ThresholdLimit))
-                            {
-                                log.LogInformation(string.Format("Threshold not exceeded for any pools. No Notification sent. Executed at: {0}", DateTime.Now));
-                                return;
-                            }
-                            else
+                            // If we are over the threshold limit for any pool , then send a notification
+                            if (CallUsageTotals.Any(p => (p.callDurationTotal / p.planDetails.planLimit) * 100 > GenConfig.ThresholdLimit))
                             {
                                 log.LogWarning(string.Format("Threshold has exceeded at least one pool. Notifications are being sent. Executed at: {0}", DateTime.Now));
                                 SendNotification = true;
+                            }
+                            else
+                            {
+                                log.LogInformation(string.Format("Threshold not exceeded for any pools. No Notification sent. Executed at: {0}", DateTime.Now));
+                                return;
                             }
                     }
                     else
